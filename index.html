@@ -8,30 +8,22 @@
 </head>
 <body class="bg-white text-gray-900">
   <div class="max-w-3xl mx-auto p-6 space-y-8">
-    <!-- Header -->
     <header class="text-center">
       <h1 class="text-4xl font-bold">MamMix</h1>
       <p class="text-lg mt-2">Your AI Meal Planner for $0.03</p>
     </header>
-
-    <!-- Description -->
     <section class="text-center">
       <p>MamMix helps busy moms create a 7-day meal plan based on what's already in the fridge. Powered by AI. Delivered instantly. For just $0.03.</p>
     </section>
-
-    <!-- Form -->
     <section>
       <form id="mamform" class="space-y-4">
         <label for="ingredients" class="block text-sm font-semibold">What ingredients do you already have?</label>
         <textarea id="ingredients" name="ingredients" rows="4" class="w-full p-2 border border-gray-300 rounded" placeholder="e.g. milk, eggs, chicken, rice"></textarea>
-
         <button type="button" id="payButton" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
           Generate Meal Plan – $0.03
         </button>
       </form>
     </section>
-
-    <!-- How it works -->
     <section>
       <h2 class="text-xl font-semibold mb-2">How it works</h2>
       <ol class="list-decimal list-inside space-y-1">
@@ -41,15 +33,12 @@
         <li>Get a ready-to-use shopping list</li>
       </ol>
     </section>
-
-    <!-- Footer -->
     <footer class="text-center text-sm text-gray-500 pt-6 border-t">
       Made with ❤️ by MamMix Team<br>
       <a href="mailto:support@mammix.ai" class="underline">support@mammix.ai</a>
     </footer>
   </div>
 
-  <!-- Stripe placeholder script -->
   <script src="https://js.stripe.com/v3/"></script>
   <script>
     document.getElementById("payButton").onclick = async () => {
