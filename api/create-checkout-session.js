@@ -24,7 +24,7 @@ module.exports = async (req, res) => {
               name: 'MamMix Meal Plan',
               description: '7-day AI-generated menu based on your ingredients',
             },
-            unit_amount: 3,
+            unit_amount: 50,
           },
           quantity: 1,
         },
