@@ -1,5 +1,3 @@
-// File: /api/generate-menu.js
-
 const Stripe = require('stripe');
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -20,7 +18,8 @@ module.exports = async (req, res) => {
     const session = await stripe.checkout.sessions.retrieve(session_id);
     const ingredients = session.metadata.ingredients || '';
 
-    const prompt = `На основе следующих продуктов: ${ingredients}\nСоставь простое меню на неделю (7 дней). Включи завтрак, обед и ужин для каждого дня. Отдельно выведи список покупок.`;
+    const prompt = `На основе следующих продуктов: ${ingredients}
+Составь простое меню на неделю (7 дней). Включи завтрак, обед и ужин для каждого дня. Отдельно выведи список покупок.`;
 
     const gptRes = await openai.createChatCompletion({
       model: 'gpt-4o',
