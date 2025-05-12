@@ -29,7 +29,7 @@ module.exports = async (req, res) => {
           quantity: 1,
         },
       ],
-      success_url: 'https://mamix-virid.vercel.app/success',
+      success_url: 'https://mamix-virid.vercel.app/success?session_id={CHECKOUT_SESSION_ID}',
       cancel_url: 'https://mamix-virid.vercel.app/cancel',
       metadata: { ingredients },
     });
