@@ -1,10 +1,9 @@
-
 {
-"version": 2,
-"routes": \[
-{ "src": "^/\$", "dest": "/index.html" },
-{ "src": "^/success\$", "dest": "/success.html" },
-{ "src": "^/cancel\$", "dest": "/cancel.html" },
-{ "src": "/api/(.\*)", "dest": "/api/\$1.js" }
-]
+  "version": 2,
+  "routes": [
+    { "src": "^/$",        "dest": "/index.html"       },
+    { "src": "^/success$", "dest": "/success.html"     },
+    { "src": "^/cancel$",  "dest": "/cancel.html"      },
+    { "src": "/api/(.*)",  "dest": "/api/$1.js"         }
+  ]
 }
