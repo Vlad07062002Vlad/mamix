@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Menu Ready – MamMix</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 text-gray-900 flex flex-col items-center justify-center min-h-screen p-6">
+  <h1 class="text-3xl font-bold mb-4">🎉 Your AI-generated Menu is Ready!</h1>
+  <p class="mb-4 text-lg">We’re processing your ingredients and creating your weekly meal plan…</p>
+  <div id="menu" class="mt-4 text-left max-w-xl w-full bg-white shadow p-6 rounded hidden">
+    <h2 class="text-xl font-semibold mb-2">Your Menu:</h2>
+    <pre class="whitespace-pre-wrap font-mono text-sm" id="menuText"></pre>
+  </div>
+  <script>
+    const sessionId = new URLSearchParams(window.location.search).get("session_id");
+    async function fetchMenu() {
+      const res = await fetch(`/api/generate-menu?session_id=${sessionId}`);
+      const data = await res.json();
+      document.getElementById("menuText").textContent = data.menu || "Error loading menu";
+      document.getElementById("menu").classList.remove("hidden");
+    }
+    if (sessionId) fetchMenu();
+  </script>
+</body>
+</html>
