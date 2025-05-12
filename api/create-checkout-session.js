@@ -1,8 +1,11 @@
-import Stripe from 'stripe';
+const Stripe = require('stripe');
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
-export default async function handler(req, res) {
+/**
+ * @param {import('vercel').VercelRequest} req
+ * @param {import('vercel').VercelResponse} res
+ */
+module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -26,16 +29,14 @@ export default async function handler(req, res) {
           quantity: 1,
         },
       ],
-      success_url: 'https://mamix-landing.vercel.app/success',
-      cancel_url: 'https://mamix-landing.vercel.app/cancel',
-      metadata: {
-        ingredients,
-      },
+      success_url: 'https://mamix-virid.vercel.app/success',
+      cancel_url: 'https://mamix-virid.vercel.app/cancel',
+      metadata: { ingredients },
     });
 
     res.status(200).json({ sessionId: session.id });
   } catch (err) {
-    console.error('Stripe error:', err);
+    console.error('Stripe error:', err.message || err);
     res.status(500).json({ error: 'Internal Server Error' });
   }
-}
+};
