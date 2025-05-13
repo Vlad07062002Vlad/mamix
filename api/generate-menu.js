@@ -6,7 +6,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const { OpenAI } = require('openai');
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Handler for generating menu
+// Handler for generating the menu
 module.exports = async (req, res) => {
   try {
     const { session_id } = req.query;
@@ -14,11 +14,11 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Missing session_id' });
     }
 
-    // Retrieve Stripe Checkout session
+    // 1) Retrieve Stripe Checkout session
     const session = await stripe.checkout.sessions.retrieve(session_id);
     const { plan, family_size, preferences, ingredients } = session.metadata;
 
-    // Calculate remaining credits
+    // 2) Calculate remaining credits
     let credits;
     if (session.customer) {
       const customer = await stripe.customers.retrieve(session.customer);
@@ -34,25 +34,27 @@ module.exports = async (req, res) => {
         metadata: { credits: credits.toString() }
       });
     } else {
+      // One-time payment → exactly 0 credits remain afterward
       credits = 0;
     }
 
-    // Build prompt
-    const prompt = `You are an AI meal planner. Cooking for ${family_size} people. ` +
-      `Dietary preferences: ${preferences}. ` +
+    // 3) Build the English prompt for GPT
+    const prompt =
+      `You are an AI meal planner. Cooking for ${family_size} people.\n` +
+      `Dietary preferences: ${preferences}.\n` +
       `Available ingredients: ${ingredients}.\n\n` +
-      `Create a simple 7-day meal plan (breakfast, lunch, dinner) scaled ` +
-      `to that number of people. Separately list additional items to buy ` +
-      `with an approximate average cost.`;
+      `Create a simple 7-day meal plan (breakfast, lunch, dinner) scaled to that number of people.\n` +
+      `Separately list additional items to buy with an approximate average cost.`;
 
-    // Call OpenAI
+    // 4) Call OpenAI API
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.7,
     });
-
     const menu = completion.choices[0].message.content;
+
+    // 5) Return both menu and remaining credits
     return res.status(200).json({ menu, credits_left: credits });
   } catch (err) {
     console.error('Generate menu error:', err);
