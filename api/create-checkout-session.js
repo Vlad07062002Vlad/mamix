@@ -1,5 +1,3 @@
-// File: /api/create-checkout-session.js
-
 const Stripe = require('stripe');
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -10,12 +8,9 @@ module.exports = async (req, res) => {
 
   try {
     const { email, plan, family_size, preferences, ingredients } = req.body;
-    const priceMap = {
-      single: 50,    // $0.50 one-time
-      pack5: 200     // $2.00 one-time
-    };
+    const priceMap = { single: 50, pack5: 200 };
 
-    // 1) Find or create Stripe Customer by email
+    // Find or create Customer
     let customer;
     const existing = await stripe.customers.list({ email, limit: 1 });
     if (existing.data.length > 0) {
@@ -24,10 +19,7 @@ module.exports = async (req, res) => {
       customer = await stripe.customers.create({ email });
     }
 
-    // 2) Determine base URL for redirects
     const origin = req.headers.origin || `https://${req.headers.host}`;
-
-    // 3) Configure Checkout session parameters
     let sessionParams = {
       customer: customer.id,
       metadata: { plan, family_size, preferences, ingredients },
@@ -36,13 +28,11 @@ module.exports = async (req, res) => {
     };
 
     if (plan === 'sub') {
-      // Monthly subscription (use pre-created Price ID)
       sessionParams.mode = 'subscription';
       sessionParams.line_items = [
         { price: process.env.SUBSCRIPTION_PRICE_ID, quantity: 1 }
       ];
     } else {
-      // One-time payment for single or 5-pack
       sessionParams.mode = 'payment';
       sessionParams.line_items = [
         {
@@ -56,12 +46,10 @@ module.exports = async (req, res) => {
       ];
     }
 
-    // 4) Create the Checkout session
     const session = await stripe.checkout.sessions.create(sessionParams);
-
-    return res.status(200).json({ sessionId: session.id });
+    res.status(200).json({ sessionId: session.id });
   } catch (err) {
     console.error('Stripe session error:', err);
-    return res.status(500).json({ error: 'Failed to create checkout session' });
+    res.status(500).json({ error: 'Failed to create checkout session' });
   }
 };
