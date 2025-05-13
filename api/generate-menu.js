@@ -1,25 +1,28 @@
-// File: /api/generate-menu.js
-
 const Stripe = require('stripe');
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
 const { OpenAI } = require('openai');
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Handler for generating the menu
 module.exports = async (req, res) => {
   try {
-    const { session_id } = req.query;
-    if (!session_id) {
-      return res.status(400).json({ error: 'Missing session_id' });
+    let session, plan, family_size, preferences, ingredients;
+    let credits;
+
+    if (req.method === 'GET' && req.query.session_id) {
+      session = await stripe.checkout.sessions.retrieve(req.query.session_id);
+      ({ plan, family_size, preferences, ingredients } = session.metadata);
+    } else if (req.method === 'POST') {
+      const { email, family_size: fam, preferences: prefs, ingredients: ingred } = req.body;
+      plan = (await stripe.customers.list({ email, limit: 1 })).data[0].metadata.plan;
+      family_size = fam;
+      preferences  = prefs;
+      ingredients  = ingred;
+      session = { customer: (await stripe.customers.list({ email, limit: 1 })).data[0].id };
+    } else {
+      return res.status(400).json({ error: 'Bad request' });
     }
 
-    // 1) Retrieve Stripe Checkout session
-    const session = await stripe.checkout.sessions.retrieve(session_id);
-    const { plan, family_size, preferences, ingredients } = session.metadata;
-
-    // 2) Calculate remaining credits
-    let credits;
+    // Calculate and update credits
     if (session.customer) {
       const customer = await stripe.customers.retrieve(session.customer);
       credits = parseInt(customer.metadata.credits || '0', 10);
@@ -30,15 +33,12 @@ module.exports = async (req, res) => {
       if (credits < 0) {
         return res.status(402).json({ error: 'No credits left' });
       }
-      await stripe.customers.update(session.customer, {
-        metadata: { credits: credits.toString() }
-      });
+      await stripe.customers.update(session.customer, { metadata: { credits: credits.toString() } });
     } else {
-      // One-time payment → exactly 0 credits remain afterward
       credits = 0;
     }
 
-    // 3) Build the English prompt for GPT
+    // Build prompt
     const prompt =
       `You are an AI meal planner. Cooking for ${family_size} people.\n` +
       `Dietary preferences: ${preferences}.\n` +
@@ -46,7 +46,7 @@ module.exports = async (req, res) => {
       `Create a simple 7-day meal plan (breakfast, lunch, dinner) scaled to that number of people.\n` +
       `Separately list additional items to buy with an approximate average cost.`;
 
-    // 4) Call OpenAI API
+    // Call OpenAI
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [{ role: 'user', content: prompt }],
@@ -54,7 +54,6 @@ module.exports = async (req, res) => {
     });
     const menu = completion.choices[0].message.content;
 
-    // 5) Return both menu and remaining credits
     return res.status(200).json({ menu, credits_left: credits });
   } catch (err) {
     console.error('Generate menu error:', err);
