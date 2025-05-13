@@ -79,7 +79,7 @@
         body: JSON.stringify(body)
       });
       const { sessionId } = await res.json();
-      const stripe = Stripe('pk_test_YOUR_PUBLIC_KEY');
+      const stripe = Stripe('pk_test_51RKfSuFSngbQaqaEACa82dtwU0nYaBYa5Mg9Bu1UeppKhv96Z8g6x4l4SjNGvzJ00UhcAvI3bMRzyieNSkJwLfDk00pgF3kkX4');
       await stripe.redirectToCheckout({ sessionId });
     };
   </script>
