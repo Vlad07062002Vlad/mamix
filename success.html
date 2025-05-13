@@ -8,24 +8,32 @@
 </head>
 <body class="bg-gray-50 text-gray-900 flex flex-col items-center justify-center min-h-screen p-6">
   <h1 class="text-3xl font-bold mb-4">🎉 Your AI-generated Menu is Ready!</h1>
-  <p class="mb-4 text-lg">We’re processing your ingredients and creating your weekly meal plan…</p>
   <div id="menu" class="mt-4 text-left max-w-xl w-full bg-white shadow p-6 rounded hidden">
     <h2 class="text-xl font-semibold mb-2">Your Menu:</h2>
-    <pre class="whitespace-pre-wrap font-mono text-sm" id="menuText"></pre>
+    <pre id="menuText" class="whitespace-pre-wrap font-mono text-sm"></pre>
     <p id="creditsLeft" class="mt-4 font-semibold text-gray-700"></p>
   </div>
   <script>
-    async function fetchMenu() {
-      const sessionId = new URLSearchParams(window.location.search).get('session_id');
-      if (!sessionId) return;
-      const res = await fetch(`/api/generate-menu?session_id=${sessionId}`);
-      const data = await res.json();
-      document.getElementById('menuText').textContent = data.menu;
-      document.getElementById('creditsLeft').textContent = 
-        `You have ${data.credits_left} meal credit${data.credits_left !== 1 ? 's' : ''} left.`;
-      document.getElementById('menu').classList.remove('hidden');
-    }
-    fetchMenu();
+    (async () => {
+      const menuParam = new URLSearchParams(window.location.search).get('menu');
+      const creditsParam = new URLSearchParams(window.location.search).get('credits');
+      if (menuParam) {
+        document.getElementById('menuText').textContent = decodeURIComponent(menuParam);
+        document.getElementById('creditsLeft').textContent =
+          `You have ${creditsParam} meal credit${creditsParam !== '1' ? 's' : ''} left.`;
+        document.getElementById('menu').classList.remove('hidden');
+        localStorage.setItem('mamix_credits', creditsParam);
+      } else {
+        const sessionId = new URLSearchParams(window.location.search).get('session_id');
+        const res       = await fetch(`/api/generate-menu?session_id=${sessionId}`);
+        const data      = await res.json();
+        document.getElementById('menuText').textContent = data.menu;
+        document.getElementById('creditsLeft').textContent =
+          `You have ${data.credits_left} meal credit${data.credits_left !== 1 ? 's' : ''} left.`;
+        document.getElementById('menu').classList.remove('hidden');
+        localStorage.setItem('mamix_credits', data.credits_left);
+      }
+    })();
   </script>
 </body>
 </html>
