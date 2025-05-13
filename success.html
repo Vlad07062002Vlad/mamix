@@ -12,16 +12,20 @@
   <div id="menu" class="mt-4 text-left max-w-xl w-full bg-white shadow p-6 rounded hidden">
     <h2 class="text-xl font-semibold mb-2">Your Menu:</h2>
     <pre class="whitespace-pre-wrap font-mono text-sm" id="menuText"></pre>
+    <p id="creditsLeft" class="mt-4 font-semibold text-gray-700"></p>
   </div>
   <script>
-    const sessionId = new URLSearchParams(window.location.search).get("session_id");
     async function fetchMenu() {
+      const sessionId = new URLSearchParams(window.location.search).get('session_id');
+      if (!sessionId) return;
       const res = await fetch(`/api/generate-menu?session_id=${sessionId}`);
       const data = await res.json();
-      document.getElementById("menuText").textContent = data.menu || "Error loading menu";
-      document.getElementById("menu").classList.remove("hidden");
+      document.getElementById('menuText').textContent = data.menu;
+      document.getElementById('creditsLeft').textContent = 
+        `You have ${data.credits_left} meal credit${data.credits_left !== 1 ? 's' : ''} left.`;
+      document.getElementById('menu').classList.remove('hidden');
     }
-    if (sessionId) fetchMenu();
+    fetchMenu();
   </script>
 </body>
 </html>
