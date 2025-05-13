@@ -1,58 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MamMix – AI Meal Planner</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-white text-gray-900">
   <div class="max-w-3xl mx-auto p-6 space-y-8">
+    <!-- Header -->
     <header class="text-center">
       <h1 class="text-4xl font-bold">MamMix</h1>
-      <p class="text-lg mt-2">Your AI Meal Planner for $0.03</p>
+      <p class="text-lg mt-2">Your AI Meal Planner</p>
     </header>
+
+    <!-- Description -->
     <section class="text-center">
-      <p>MamMix helps busy moms create a 7-day meal plan based on what's already in the fridge. Powered by AI. Delivered instantly. For just $0.03.</p>
+      <p>MamMix helps busy families plan meals for the week—powered by AI.</p>
     </section>
+
+    <!-- Form -->
     <section>
       <form id="mamform" class="space-y-4">
+        <!-- Email -->
+        <label for="email" class="block text-sm font-semibold">Email</label>
+        <input id="email" name="email" type="email" required
+               class="w-full p-2 border border-gray-300 rounded" placeholder="you@example.com">
+
+        <!-- Family size -->
+        <label for="familySize" class="block text-sm font-semibold">How many people are you cooking for?</label>
+        <input id="familySize" name="family_size" type="number" min="1" value="4"
+               class="w-full p-2 border border-gray-300 rounded">
+
+        <!-- Preferences -->
+        <label for="preferences" class="block text-sm font-semibold">Dietary restrictions or preferences</label>
+        <input id="preferences" name="preferences" type="text"
+               class="w-full p-2 border border-gray-300 rounded"
+               placeholder="e.g. vegetarian, gluten-free">
+
+        <!-- Ingredients -->
         <label for="ingredients" class="block text-sm font-semibold">What ingredients do you already have?</label>
-        <textarea id="ingredients" name="ingredients" rows="4" class="w-full p-2 border border-gray-300 rounded" placeholder="e.g. milk, eggs, chicken, rice"></textarea>
-        <button type="button" id="payButton" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          Generate Meal Plan – $0.03
+        <textarea id="ingredients" name="ingredients" rows="4"
+                  class="w-full p-2 border border-gray-300 rounded"
+                  placeholder="e.g. chicken 1.8kg, rice 0.9kg, milk 3.8L, eggs 12"></textarea>
+
+        <!-- Plan selection -->
+        <label class="block text-sm font-semibold">Choose your plan</label>
+        <select id="plan" name="plan" class="w-full p-2 border border-gray-300 rounded">
+          <option value="single">Single Meal Plan — $0.50</option>
+          <option value="pack5">5-Pack (5 credits) — $2.00</option>
+          <option value="sub">Monthly Subscription — $4.99</option>
+        </select>
+
+        <!-- Purchase button -->
+        <button type="button" id="payButton"
+                class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+          Purchase & Generate Menu
         </button>
       </form>
     </section>
-    <section>
-      <h2 class="text-xl font-semibold mb-2">How it works</h2>
-      <ol class="list-decimal list-inside space-y-1">
-        <li>Enter your ingredients</li>
-        <li>Pay $0.03 via Stripe</li>
-        <li>Receive a full 7-day meal plan</li>
-        <li>Get a ready-to-use shopping list</li>
-      </ol>
-    </section>
-    <footer class="text-center text-sm text-gray-500 pt-6 border-t">
-      Made with ❤️ by MamMix Team<br>
-      <a href="mailto:support@mammix.ai" class="underline">support@mammix.ai</a>
-    </footer>
+
   </div>
 
+  <!-- Stripe JS -->
   <script src="https://js.stripe.com/v3/"></script>
   <script>
-    document.getElementById("payButton").onclick = async () => {
-      const ingredients = document.getElementById("ingredients").value;
-      const res = await fetch("/api/create-checkout-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ingredients })
+    document.getElementById('payButton').onclick = async () => {
+      const body = {
+        email: document.getElementById('email').value,
+        plan: document.getElementById('plan').value,
+        family_size: document.getElementById('familySize').value,
+        preferences: document.getElementById('preferences').value,
+        ingredients: document.getElementById('ingredients').value
+      };
+      const res = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
       });
-
-      const data = await res.json();
-      const stripe = Stripe("pk_test_51RKfSuFSngbQaqaEACa82dtwU0nYaBYa5Mg9Bu1UeppKhv96Z8g6x4l4SjNGvzJ00UhcAvI3bMRzyieNSkJwLfDk00pgF3kkX4");
-      stripe.redirectToCheckout({ sessionId: data.sessionId });
-    }
+      const { sessionId } = await res.json();
+      const stripe = Stripe('pk_test_YOUR_PUBLIC_KEY');
+      await stripe.redirectToCheckout({ sessionId });
+    };
   </script>
 </body>
 </html>
