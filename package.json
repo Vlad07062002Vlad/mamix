@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "dependencies": {
     "stripe": "^12.0.0",
-    "openai": "^4.2.0"
+    "openai": "^4.2.0",
+    "raw-body": "^2.5.1"
   }
 }
