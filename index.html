@@ -1,3 +1,4 @@
+<!-- File: index.html — Coinbase Commerce integrated -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,26 +14,23 @@
       <p class="text-lg mt-2">Your AI Meal Planner</p>
     </header>
 
-    <!-- Form -->
+    <section class="text-center">
+      <p>MamMix helps busy families plan meals for the week—powered by AI.</p>
+    </section>
+
     <section>
       <form id="mamform" class="space-y-4">
         <label for="email" class="block text-sm font-semibold">Email</label>
-        <input id="email" name="email" type="email" required
-               class="w-full p-2 border border-gray-300 rounded" placeholder="you@example.com">
+        <input id="email" name="email" type="email" required class="w-full p-2 border border-gray-300 rounded" placeholder="you@example.com">
 
         <label for="familySize" class="block text-sm font-semibold">How many people are you cooking for?</label>
-        <input id="familySize" name="family_size" type="number" min="1" value="4"
-               class="w-full p-2 border border-gray-300 rounded">
+        <input id="familySize" name="family_size" type="number" min="1" value="4" class="w-full p-2 border border-gray-300 rounded">
 
         <label for="preferences" class="block text-sm font-semibold">Dietary restrictions or preferences</label>
-        <input id="preferences" name="preferences" type="text"
-               class="w-full p-2 border border-gray-300 rounded"
-               placeholder="e.g. vegetarian, gluten-free">
+        <input id="preferences" name="preferences" type="text" class="w-full p-2 border border-gray-300 rounded" placeholder="e.g. vegetarian, gluten-free">
 
         <label for="ingredients" class="block text-sm font-semibold">What ingredients do you already have?</label>
-        <textarea id="ingredients" name="ingredients" rows="4"
-                  class="w-full p-2 border border-gray-300 rounded"
-                  placeholder="e.g. chicken 1.8kg, rice 0.9kg, milk 3.8L, eggs 12"></textarea>
+        <textarea id="ingredients" name="ingredients" rows="4" class="w-full p-2 border border-gray-300 rounded" placeholder="e.g. chicken 1.8kg, rice 0.9kg, milk 3.8L, eggs 12"></textarea>
 
         <label class="block text-sm font-semibold">Choose your plan</label>
         <select id="plan" name="plan" class="w-full p-2 border border-gray-300 rounded">
@@ -41,48 +39,35 @@
           <option value="sub">Monthly Subscription — $4.99</option>
         </select>
 
-        <button type="button" id="payButton"
-                class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+        <button type="button" id="payButton" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
           Purchase & Generate Menu
         </button>
       </form>
     </section>
   </div>
 
-  <script src="https://js.stripe.com/v3/"></script>
   <script>
     document.getElementById('payButton').onclick = async () => {
-      const email  = document.getElementById('email').value;
-      const plan   = document.getElementById('plan').value;
-      const family = document.getElementById('familySize').value;
-      const prefs  = document.getElementById('preferences').value;
-      const ingred = document.getElementById('ingredients').value;
+      const body = {
+        email: document.getElementById('email').value,
+        plan: document.getElementById('plan').value,
+        family_size: document.getElementById('familySize').value,
+        preferences: document.getElementById('preferences').value,
+        ingredients: document.getElementById('ingredients').value
+      };
 
-      const storedCredits = parseInt(localStorage.getItem('mamix_credits') || '0', 10);
-      if (storedCredits > 0) {
-        // Use existing credit
-        const resp = await fetch('/api/generate-menu', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, family_size: family, preferences: prefs, ingredients: ingred })
-        });
-        const data = await resp.json();
-        localStorage.setItem('mamix_credits', data.credits_left);
-        window.location = `/success?menu=${encodeURIComponent(data.menu)}&credits=${data.credits_left}`;
-        return;
-      }
-
-      // Create Checkout Session
-      const body = { email, plan, family_size: family, preferences: prefs, ingredients: ingred };
-      const sessionRes = await fetch('/api/create-checkout-session', {
+      const res = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
-      const { sessionId } = await sessionRes.json();
-      sessionStorage.setItem('mamix_email', email);
-      const stripe = Stripe('pk_test_51RKfSuFSngbQaqaEACa82dtwU0nYaBYa5Mg9Bu1UeppKhv96Z8g6x4l4SjNGvzJ00UhcAvI3bMRzyieNSkJwLfDk00pgF3kkX4');
-      stripe.redirectToCheckout({ sessionId });
+
+      const data = await res.json();
+      if (data.hosted_url) {
+        window.location.href = data.hosted_url;
+      } else {
+        alert('Error creating payment session. Please try again.');
+      }
     };
   </script>
 </body>
